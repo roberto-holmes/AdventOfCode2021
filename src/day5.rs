@@ -1,7 +1,7 @@
 use std::{cmp, fs, io};
 
 pub fn run() {
-    println!("Day 4");
+    println!("Day 5");
     println!("Part 1 is {:?}", part1());
     println!("Part 2 is {:?}", part2());
 }
