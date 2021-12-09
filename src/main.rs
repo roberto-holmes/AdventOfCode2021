@@ -7,6 +7,7 @@ mod day5;
 mod day6;
 mod day7;
 mod day8;
+mod day9;
 
 use std::env;
 
@@ -19,6 +20,7 @@ fn main() {
 
     // Run the relevant day
     match current_day {
+        9 => day9::run(),
         8 => day8::run(),
         7 => day7::run(),
         6 => day6::run(),
