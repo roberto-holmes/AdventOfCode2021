@@ -2,6 +2,7 @@ mod day0;
 mod day1;
 mod day10;
 mod day11;
+mod day13;
 mod day2;
 mod day3;
 mod day4;
@@ -22,6 +23,7 @@ fn main() {
 
     // Run the relevant day
     match current_day {
+        13 => day13::run(),
         11 => day11::run(),
         10 => day10::run(),
         9 => day9::run(),
