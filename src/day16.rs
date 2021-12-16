@@ -7,22 +7,26 @@ pub fn run() {
     // Open file
     let input = fs::read_to_string("inputs/day16.txt").expect("File not found");
     // Extract each line
-    println!("Hex: {:?}", input);
     let input = convert_to_binary_from_hex(&input);
 
     println!("Part 1 is {:?}", part1(&input));
-    // println!("Part 2 is {:?}", part2(&input));
+    println!("Part 2 is {:?}", part2(&input));
 }
 
 fn part1(input: &Vec<char>) -> Result<usize, io::Error> {
-    println!("{:?}", input);
-
     let mut pointer = 0;
     let mut version_sum = 0;
 
     parse_packet(input, &mut pointer, &mut version_sum);
 
     Ok(version_sum)
+}
+
+fn part2(input: &Vec<char>) -> Result<u64, io::Error> {
+    let mut pointer = 0;
+    let mut version_sum = 0;
+
+    Ok(parse_packet(input, &mut pointer, &mut version_sum))
 }
 
 // Read packet header and decide what to do with the body
@@ -44,23 +48,19 @@ fn parse_packet(input: &Vec<char>, pointer: &mut usize, version_sum: &mut usize)
     // Add version num for Part 1 result
     *version_sum += version as usize;
 
-    let mut result = 0;
+    // Remember where the pointer started
+    let initial_pointer = *pointer;
+    // Depending on how the subpackets are stored, get their length and advance the pointer
+    let mut sub_packet_len = 0;
+    let mut sub_packet_count = 0;
 
-    // Literal Value
-    if type_id == 4 {
-        result = parse_literal_value(input, pointer);
-    }
+    let mut sub_packets = Vec::new();
     // Operator
-    else {
+    if type_id != 4 {
         // Get the way the subpacket lenghts are stored
         let length_type_id = &input[*pointer];
         println!("Length Type ID: {} ", length_type_id);
         *pointer += 1;
-        // Remember where the pointer started
-        let initial_pointer = *pointer;
-        // Depending on how the subpackets are stored, get their length and advance the pointer
-        let mut sub_packet_len = 0;
-        let mut sub_packet_count = 0;
         if *length_type_id == '0' {
             sub_packet_len = convert_to_decimal_from_binary(&input[*pointer..*pointer + 15]);
             println!("Subpacket length of {}", sub_packet_len);
@@ -73,18 +73,38 @@ fn parse_packet(input: &Vec<char>, pointer: &mut usize, version_sum: &mut usize)
         // Process each subpacket
         if sub_packet_len != 0 {
             while *pointer - 15 < (sub_packet_len) as usize + initial_pointer {
-                parse_packet(input, pointer, version_sum);
+                sub_packets.push(parse_packet(input, pointer, version_sum));
             }
         } else if sub_packet_count != 0 {
             for _ in 0..sub_packet_count {
-                parse_packet(input, pointer, version_sum);
+                sub_packets.push(parse_packet(input, pointer, version_sum));
             }
         } else {
             panic!("Unsure about subpacket lengths");
         }
     }
 
-    result
+    // Perform and return function depending on what was commanded
+    match type_id {
+        0 => sub_packets.iter().sum(),
+        1 => multiply_subpackets(&sub_packets),
+        2 => *sub_packets.iter().min().unwrap(),
+        3 => *sub_packets.iter().max().unwrap(),
+        4 => parse_literal_value(input, pointer),
+        5 => (sub_packets[0] > sub_packets[1]) as u64,
+        6 => (sub_packets[0] < sub_packets[1]) as u64,
+        7 => (sub_packets[0] == sub_packets[1]) as u64,
+        _ => panic!("{} is an invalid type ID", type_id.to_string().red()),
+    }
+}
+
+// Multiply all subpackets in the vector together
+fn multiply_subpackets(sub_packets: &Vec<u64>) -> u64 {
+    let mut product = 1;
+    for packet in sub_packets {
+        product *= packet;
+    }
+    product
 }
 
 // Get stored numbers in the transmission
