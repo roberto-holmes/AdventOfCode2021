@@ -16,7 +16,7 @@ pub fn run() {
     // Extract each line
     let input: Vec<&str> = input.split("\r\n").collect();
 
-    // println!("Part 1 is {:?}", part1(&input));
+    println!("Part 1 is {:?}", part1(&input));
     println!("Part 2 is {:?}", part2(&input));
 }
 
